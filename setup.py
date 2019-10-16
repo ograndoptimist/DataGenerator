@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='dataset-loader',
+    name='text-dataset',
     version='0.1',
     packages=find_packages(),
     license=license,

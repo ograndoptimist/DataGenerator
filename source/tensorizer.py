@@ -1,16 +1,29 @@
 import torch
 
 
-class Tensorizer(object):
-    def __init__(self,
-                 input_dim):
-        self.input_dim = input_dim
+def one_hot(input_dim,
+            tokens_vec,
+            max_len):
+    final_vec = torch.zeros((max_len, input_dim), dtype=torch.long)  # [batch_size, input_dim]
+    for i, token_id in enumerate(tokens_vec):
+        if i == max_len:
+            break
+        final_vec[i, token_id] = 1
+    final_vec = final_vec.unsqueeze(0)
+    return final_vec
 
-    def one_hot(self, tokens_vec):
-        final_vec = torch.zeros((len(tokens_vec), self.input_dim))  # [batch_size, input_dim]
-        for cont, token in enumerate(tokens_vec):
-            final_vec[cont, token] = 1
-        return final_vec
 
-    def to_tensor(self, tokens_vec):
-        return self.one_hot(tokens_vec)
+def batchify(sequences,
+             max_len,
+             tokenizer):
+    for cont, text in enumerate(sequences):
+        tensor = one_hot(len(tokenizer.vocab), tokenizer.encode(text), max_len=max_len)
+        if cont == 0:
+            batch = tensor
+        else:
+            try:
+                batch = torch.cat((batch, tensor), 0)
+            except RuntimeError:
+                print("Error")
+                break
+    return batch

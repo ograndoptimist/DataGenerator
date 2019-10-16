@@ -22,3 +22,11 @@ def build_lookup(text):
         its respective value is a related id.
     """
     return {word_: i for i, word_ in enumerate(text)}
+
+
+def prepare_generator(dataframe_generator):
+    return [data for data in dataframe_generator[dataframe_generator.columns[0]]]
+
+
+def build_generator(data):
+    return (x for x in data)

@@ -12,7 +12,7 @@ class Tokenizer(object):
         self.to_lower = to_lower
 
     def char_iterator(self, text):
-        return [char.lower() for word_ in text for char in word_] \
+        return [char_.lower() for word_ in text for char_ in word_] \
             if self.to_lower else [char_ for word_ in text for char_ in word_]
 
     def build_vocab(self, text):

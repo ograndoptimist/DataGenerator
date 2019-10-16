@@ -23,8 +23,7 @@ class DataIterator(object):
             if i == self.batch_size:
                 break
             sequences.append(x)
-        batch = batchify(sequences=sequences, max_len=self.max_len, tokenizer=self.tokenizer)
-        yield batch
+        return batchify(sequences=sequences, max_len=self.max_len, tokenizer=self.tokenizer)
 
 
 class Dataset(object):

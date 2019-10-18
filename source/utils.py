@@ -25,7 +25,8 @@ def build_lookup(text):
 
 
 def prepare_generator(dataframe_generator):
-    return [data for data in dataframe_generator[dataframe_generator.columns[0]]]
+    return [(x, y.split('/')[0]) for x, y in zip(dataframe_generator[dataframe_generator.columns[0]],
+                                                 dataframe_generator[dataframe_generator.columns[1]])]
 
 
 def build_generator(data):

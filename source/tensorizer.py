@@ -21,9 +21,5 @@ def batchify(sequences,
         if cont == 0:
             batch = tensor
         else:
-            try:
-                batch = torch.cat((batch, tensor), 0)
-            except RuntimeError:
-                print("Error")
-                break
+            batch = torch.cat((batch, tensor), 0)
     return batch

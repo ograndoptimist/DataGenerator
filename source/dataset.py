@@ -1,4 +1,5 @@
 import torch
+from itertools import tee
 
 from source.tensorizer import batchify
 
@@ -13,18 +14,28 @@ class DataIterator(object):
                  batch_size,
                  max_len,
                  input_dim,
-                 lookup_labels):
-        self.data = data_generator
+                 lookup_labels,
+                 length):
+        self.data_one, self.data_two = tee(data_generator)
         self.tokenizer = tokenizer
         self.batch_size = batch_size
         self.max_len = max_len
         self.input_dim = input_dim
         self.lookup_labels = lookup_labels
+        self.length = length
 
-    def __iter__(self):
+    @property
+    def size(self):
+        return self.length
+
+    @property
+    def steps(self):
+        return int(self.length / self.batch_size)
+
+    def iter(self, data_iterator):
         sequences = []
-        for i, data in zip(range(self.batch_size), self.data):
-            label = torch.tensor([self.lookup_labels[data[1]]], dtype=torch.float)
+        for i, data in zip(range(self.batch_size), data_iterator):
+            label = torch.tensor([self.lookup_labels[data[1]]], dtype=torch.long)
             if i == self.batch_size:
                 break
             if i == 0:
@@ -32,7 +43,14 @@ class DataIterator(object):
             else:
                 labels = torch.cat((labels, label), 0)
             sequences.append(data[0])
-        yield batchify(sequences=sequences, max_len=self.max_len, tokenizer=self.tokenizer), labels
+        return batchify(sequences=sequences, max_len=self.max_len, tokenizer=self.tokenizer), labels
+
+    def __iter__(self):
+        try:
+            yield self.iter(self.data_one)
+        except UnboundLocalError:
+            self.data_one, self.data_two = tee(self.data_two)
+            yield self.iter(self.data_one)
 
 
 class Dataset(object):
@@ -42,7 +60,7 @@ class Dataset(object):
         self.data = data_generator
         self.tokenizer = tokenizer
 
-    def split(self, batch_size, max_len, input_dim, lookup_labels):
+    def split(self, batch_size, input_dim, lookup_labels):
         train = test = val = []
 
         for data in self.data:
@@ -55,18 +73,15 @@ class Dataset(object):
         return DataIterator(data_generator=build_generator(train),
                             tokenizer=self.tokenizer,
                             batch_size=batch_size,
-                            max_len=max_len,
                             input_dim=input_dim,
                             lookup_labels=lookup_labels), \
                DataIterator(data_generator=build_generator(test),
                             tokenizer=self.tokenizer,
                             batch_size=batch_size,
-                            max_len=max_len,
                             input_dim=input_dim,
                             lookup_labels=lookup_labels), \
                DataIterator(data_generator=build_generator(val),
                             tokenizer=self.tokenizer,
                             batch_size=batch_size,
-                            max_len=max_len,
                             input_dim=input_dim,
                             lookup_labels=lookup_labels)

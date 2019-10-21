@@ -60,28 +60,34 @@ class Dataset(object):
         self.data = data_generator
         self.tokenizer = tokenizer
 
-    def split(self, batch_size, input_dim, lookup_labels):
+    def split(self, batch_size, max_len, input_dim, lookup_labels):
         train = test = val = []
 
         for data in self.data:
             data_block = prepare_generator(data)
 
-            [train.append(data) for data in data_block[:int(0.7 * len(data_block))]]
-            [test.append(data) for data in data_block[int(0.7 * len(data_block)):int(0.9 * len(data_block))]]
-            [val.append(data) for data in data_block[int(0.9 * len(data_block)):]]
+            [train.append(_) for _ in data_block[:int(0.7 * len(data_block))]]
+            [test.append(_) for _ in data_block[int(0.7 * len(data_block)):int(0.9 * len(data_block))]]
+            [val.append(_) for _ in data_block[int(0.9 * len(data_block)):]]
 
         return DataIterator(data_generator=build_generator(train),
                             tokenizer=self.tokenizer,
                             batch_size=batch_size,
+                            max_len=max_len,
                             input_dim=input_dim,
-                            lookup_labels=lookup_labels), \
+                            lookup_labels=lookup_labels,
+                            length=len(train)), \
                DataIterator(data_generator=build_generator(test),
                             tokenizer=self.tokenizer,
                             batch_size=batch_size,
+                            max_len=max_len,
                             input_dim=input_dim,
-                            lookup_labels=lookup_labels), \
+                            lookup_labels=lookup_labels,
+                            length=len(test)), \
                DataIterator(data_generator=build_generator(val),
                             tokenizer=self.tokenizer,
                             batch_size=batch_size,
+                            max_len=max_len,
                             input_dim=input_dim,
-                            lookup_labels=lookup_labels)
+                            lookup_labels=lookup_labels,
+                            length=len(val))

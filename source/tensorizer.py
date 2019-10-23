@@ -16,7 +16,7 @@ def one_hot(input_dim,
 def batchify(sequences,
              max_len,
              tokenizer):
-    batch = np.zeros((len(sequences), len(tokenizer.vocab)))
+    batch = np.zeros((len(sequences), len(tokenizer.vocab)), dtype=np.int64)
     for i, text in enumerate(sequences):
         batch[i, :] = one_hot(len(tokenizer.vocab), tokenizer.encode(text), max_len=max_len)
     return torch.from_numpy(batch)

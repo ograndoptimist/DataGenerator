@@ -1,5 +1,6 @@
 import torch
 from itertools import tee
+import numpy as np
 
 from source.tensorizer import batchify
 
@@ -59,6 +60,24 @@ class Dataset(object):
                  tokenizer):
         self.data = data_generator
         self.tokenizer = tokenizer
+
+    @staticmethod
+    def iter(data,
+             batch_size,
+             lookup_labels,
+             tokenizer,
+             max_len):
+        sequences = []
+        for i, data in zip(range(batch_size), data):
+            if i == batch_size:
+                break
+            label = np.array([lookup_labels[data[1]]], dtype=np.int64)
+            if i == 0:
+                labels = label
+            else:
+                labels = np.concatenate((labels, label), 0)
+            sequences.append(data[0])
+        return batchify(sequences=sequences, max_len=max_len, tokenizer=tokenizer), torch.from_numpy(labels)
 
     def split(self, batch_size, max_len, input_dim, lookup_labels):
         train = test = val = []

@@ -53,10 +53,12 @@ class DataIterator(object):
 
     def __iter__(self):
         try:
-            yield DataIterator.iter(self.data_one)
+            yield DataIterator.iter(data=self.data_one, batch_size=self.batch_size,
+                                    lookup_labels=self.lookup_labels, tokenizer=self.tokenizer, max_len=self.max_len)
         except UnboundLocalError:
             self.data_one, self.data_two = tee(self.data_two)
-            yield DataIterator.iter(self.data_one)
+            yield DataIterator.iter(data=self.data_one, batch_size=self.batch_size,
+                                    lookup_labels=self.lookup_labels, tokenizer=self.tokenizer, max_len=self.max_len)
 
 
 class Dataset(object):

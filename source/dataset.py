@@ -69,7 +69,9 @@ class Dataset(object):
         self.tokenizer = tokenizer
 
     def split(self, batch_size, max_len, input_dim, lookup_labels):
-        train = test = val = []
+        train = []
+        test = []
+        val = []
 
         for data in self.data:
             data_block = prepare_generator(data)

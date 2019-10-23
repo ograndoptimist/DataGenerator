@@ -33,34 +33,6 @@ class DataIterator(object):
     def steps(self):
         return int(self.length / self.batch_size)
 
-    def iter(self, data_iterator):
-        sequences = []
-        for i, data in zip(range(self.batch_size), data_iterator):
-            label = torch.tensor([self.lookup_labels[data[1]]], dtype=torch.long)
-            if i == self.batch_size:
-                break
-            if i == 0:
-                labels = label
-            else:
-                labels = torch.cat((labels, label), 0)
-            sequences.append(data[0])
-        return batchify(sequences=sequences, max_len=self.max_len, tokenizer=self.tokenizer), labels
-
-    def __iter__(self):
-        try:
-            yield self.iter(self.data_one)
-        except UnboundLocalError:
-            self.data_one, self.data_two = tee(self.data_two)
-            yield self.iter(self.data_one)
-
-
-class Dataset(object):
-    def __init__(self,
-                 data_generator,
-                 tokenizer):
-        self.data = data_generator
-        self.tokenizer = tokenizer
-
     @staticmethod
     def iter(data,
              batch_size,
@@ -78,6 +50,21 @@ class Dataset(object):
                 labels = np.concatenate((labels, label), 0)
             sequences.append(data[0])
         return batchify(sequences=sequences, max_len=max_len, tokenizer=tokenizer), torch.from_numpy(labels)
+
+    def __iter__(self):
+        try:
+            yield DataIterator.iter(self.data_one)
+        except UnboundLocalError:
+            self.data_one, self.data_two = tee(self.data_two)
+            yield DataIterator.iter(self.data_one)
+
+
+class Dataset(object):
+    def __init__(self,
+                 data_generator,
+                 tokenizer):
+        self.data = data_generator
+        self.tokenizer = tokenizer
 
     def split(self, batch_size, max_len, input_dim, lookup_labels):
         train = test = val = []

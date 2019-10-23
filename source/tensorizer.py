@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 def one_hot(input_dim,
@@ -20,5 +21,6 @@ def batchify(sequences,
         if cont == 0:
             batch = tensor
         else:
-            batch = torch.cat((batch, tensor), 0)
+            batch = np.concatenate((batch, tensor), 0)
+    batch = torch.from_numpy(batch)
     return batch

@@ -1,15 +1,14 @@
-import torch
+import numpy as np
 
 
 def one_hot(input_dim,
             tokens_vec,
             max_len):
-    final_vec = torch.zeros((max_len, input_dim), dtype=torch.long)  # [batch_size, input_dim]
+    final_vec = np.zeros((1, input_dim), dtype=np.int64)
     for i, token_id in enumerate(tokens_vec):
         if i == max_len:
             break
-        final_vec[i, token_id] = 1
-    final_vec = final_vec.unsqueeze(0)
+        final_vec[0, token_id] = 1
     return final_vec
 
 

@@ -55,7 +55,7 @@ class DataIterator(object):
         return int(self.length / self.batch_size)
 
     @staticmethod
-    def iter(data, batch_size, lookup_labels, tokenizer, max_len):
+    def __iter(data, batch_size, lookup_labels, tokenizer, max_len):
         sequences = []
         for i, data in zip(range(batch_size), data):
             if i == batch_size:

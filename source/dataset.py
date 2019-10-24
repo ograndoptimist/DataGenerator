@@ -68,17 +68,18 @@ class DataIterator(object):
 
     def __iter__(self):
         try:
-            yield DataIterator.iter(data=self.data_one, batch_size=self.batch_size,
-                                    lookup_labels=self.lookup_labels, tokenizer=self.tokenizer, max_len=self.max_len)
+            yield DataIterator.__iter(data=self.data_one, batch_size=self.batch_size,
+                                      lookup_labels=self.lookup_labels, tokenizer=self.tokenizer, max_len=self.max_len)
         except UnboundLocalError:
-            print('oi!')
             if self.shuffle is True:
-                i, choice = DataIterator.shuffle(self.data_two)
+                i, choice = DataIterator.__shuffle(self.data_two)
                 self.data_one, self.data_two[i] = tee(choice)
             else:
-                self.data_one, self.data_two = tee(self.data_two)
-            yield DataIterator.iter(data=self.data_one, batch_size=self.batch_size,
-                                    lookup_labels=self.lookup_labels, tokenizer=self.tokenizer, max_len=self.max_len)
+                choice = self.data_two.popleft()
+                self.data_one, item = tee(choice)
+                self.data_two.append(item)
+            yield DataIterator.__iter(data=self.data_one, batch_size=self.batch_size,
+                                      lookup_labels=self.lookup_labels, tokenizer=self.tokenizer, max_len=self.max_len)
 
 
 class Dataset(object):

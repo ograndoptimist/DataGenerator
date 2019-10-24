@@ -1,6 +1,7 @@
 import torch
 from itertools import tee
 import numpy as np
+import random
 
 from source.tensorizer import batchify
 
@@ -16,14 +17,33 @@ class DataIterator(object):
                  max_len,
                  input_dim,
                  lookup_labels,
-                 length):
-        self.data_one, self.data_two = tee(data_generator)
+                 length,
+                 shuffle,
+                 mode):
+        self.data_two = data_generator
+        if shuffle is True:
+            i, choice = DataIterator.__shuffle(self.data_two)
+            self.data_one, self.data_two[i] = tee(choice)
+        else:
+            choice = self.data_two.popleft()
+            self.data_one, choice = tee(choice)
+            self.data_two.append(choice)
         self.tokenizer = tokenizer
         self.batch_size = batch_size
         self.max_len = max_len
         self.input_dim = input_dim
         self.lookup_labels = lookup_labels
         self.length = length
+        self.shuffle = shuffle
+        self.mode = mode
+
+    @staticmethod
+    def shuffle(data_generator):
+        choice = random.choice(data_generator)
+        for i in range(len(data_generator)):
+            if data_generator[i] is choice:
+                index = i
+        return i, choice
 
     @property
     def size(self):
@@ -52,7 +72,12 @@ class DataIterator(object):
             yield DataIterator.iter(data=self.data_one, batch_size=self.batch_size,
                                     lookup_labels=self.lookup_labels, tokenizer=self.tokenizer, max_len=self.max_len)
         except UnboundLocalError:
-            self.data_one, self.data_two = tee(self.data_two)
+            print('oi!')
+            if self.shuffle is True:
+                i, choice = DataIterator.shuffle(self.data_two)
+                self.data_one, self.data_two[i] = tee(choice)
+            else:
+                self.data_one, self.data_two = tee(self.data_two)
             yield DataIterator.iter(data=self.data_one, batch_size=self.batch_size,
                                     lookup_labels=self.lookup_labels, tokenizer=self.tokenizer, max_len=self.max_len)
 

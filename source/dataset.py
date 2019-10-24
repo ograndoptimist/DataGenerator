@@ -38,12 +38,11 @@ class DataIterator(object):
         self.mode = mode
 
     @staticmethod
-    def shuffle(data_generator):
-        choice = random.choice(data_generator)
-        for i in range(len(data_generator)):
-            if data_generator[i] is choice:
-                index = i
-        return i, choice
+    def __shuffle(list_generator):
+        choice = random.choice(list_generator)
+        for i in range(len(list_generator)):
+            if list_generator[i] is choice:
+                return i, choice
 
     @property
     def size(self):

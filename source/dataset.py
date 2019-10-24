@@ -2,6 +2,7 @@ import torch
 from itertools import tee
 import numpy as np
 import random
+import pandas as pd
 
 from source.tensorizer import batchify
 
@@ -84,10 +85,15 @@ class DataIterator(object):
 
 class Dataset(object):
     def __init__(self,
-                 data_generator,
-                 tokenizer):
-        self.data = data_generator
+                 data_path,
+                 open_pandas,
+                 usecols,
+                 tokenizer,
+                 batch_size):
+        if open_pandas is True:
+            self.data = pd.read_csv(data_path, usecols=usecols, chunksize=100*batch_size)
         self.tokenizer = tokenizer
+        self.batch_size = batch_size
 
     def split(self, batch_size, max_len, input_dim, lookup_labels):
         train = []

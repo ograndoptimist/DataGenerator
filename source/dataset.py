@@ -3,6 +3,7 @@ from itertools import tee
 import numpy as np
 import random
 import pandas as pd
+from collections import deque
 
 from source.tensorizer import batchify
 
@@ -95,36 +96,42 @@ class Dataset(object):
         self.tokenizer = tokenizer
         self.batch_size = batch_size
 
-    def split(self, batch_size, max_len, input_dim, lookup_labels):
+    def split(self, max_len, input_dim, lookup_labels, shuffle, train_test_val=None):
         train = []
-        test = []
-        val = []
+        test = deque()
+        val = deque()
 
         for data in self.data:
             data_block = prepare_generator(data)
 
-            [train.append(_) for _ in data_block[:int(0.7 * len(data_block))]]
-            [test.append(_) for _ in data_block[int(0.7 * len(data_block)):int(0.9 * len(data_block))]]
-            [val.append(_) for _ in data_block[int(0.9 * len(data_block)):]]
+            train.append(build_generator(data_block[:int(0.7 * len(data_block))]))
+            test.append(build_generator(data_block[int(0.7 * len(data_block)):int(0.9 * len(data_block))]))
+            val.append(build_generator(data_block[int(0.9 * len(data_block)):]))
 
-        return DataIterator(data_generator=build_generator(train),
+        return DataIterator(data_generator=train,
                             tokenizer=self.tokenizer,
-                            batch_size=batch_size,
+                            batch_size=self.batch_size,
                             max_len=max_len,
                             input_dim=input_dim,
                             lookup_labels=lookup_labels,
-                            length=len(train)), \
-               DataIterator(data_generator=build_generator(test),
+                            length=len(train),
+                            shuffle=shuffle,
+                            mode='train'), \
+               DataIterator(data_generator=test,
                             tokenizer=self.tokenizer,
-                            batch_size=batch_size,
+                            batch_size=self.batch_size,
                             max_len=max_len,
                             input_dim=input_dim,
                             lookup_labels=lookup_labels,
-                            length=len(test)), \
-               DataIterator(data_generator=build_generator(val),
+                            length=len(test),
+                            shuffle=False,
+                            mode='test'), \
+               DataIterator(data_generator=val,
                             tokenizer=self.tokenizer,
-                            batch_size=batch_size,
+                            batch_size=self.batch_size,
                             max_len=max_len,
                             input_dim=input_dim,
                             lookup_labels=lookup_labels,
-                            length=len(val))
+                            length=len(val),
+                            shuffle=False,
+                            mode='val')

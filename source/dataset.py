@@ -1,8 +1,8 @@
 import torch
 from itertools import tee
 import numpy as np
-import random
-import pandas as pd
+from random import choice
+from pandas import read_csv
 from collections import deque
 
 from source.tensorizer import batchify
@@ -24,12 +24,12 @@ class DataIterator(object):
                  mode):
         self.data_two = data_generator
         if shuffle is True:
-            i, choice = DataIterator.__shuffle(self.data_two)
-            self.data_one, self.data_two[i] = tee(choice)
+            i, entry = DataIterator.__shuffle(self.data_two)
+            self.data_one, self.data_two[i] = tee(entry)
         else:
-            choice = self.data_two.popleft()
-            self.data_one, choice = tee(choice)
-            self.data_two.append(choice)
+            entry = self.data_two.popleft()
+            self.data_one, entry = tee(entry)
+            self.data_two.append(entry)
         self.tokenizer = tokenizer
         self.batch_size = batch_size
         self.max_len = max_len
@@ -41,9 +41,9 @@ class DataIterator(object):
 
     @staticmethod
     def __shuffle(list_generator):
-        choice = random.choice(list_generator)
+        entry = choice(list_generator)
         for i in range(len(list_generator)):
-            if list_generator[i] is choice:
+            if list_generator[i] is entry:
                 return i, choice
 
     @property
@@ -74,11 +74,11 @@ class DataIterator(object):
                                       lookup_labels=self.lookup_labels, tokenizer=self.tokenizer, max_len=self.max_len)
         except UnboundLocalError:
             if self.shuffle is True:
-                i, choice = DataIterator.__shuffle(self.data_two)
-                self.data_one, self.data_two[i] = tee(choice)
+                i, entry = DataIterator.__shuffle(self.data_two)
+                self.data_one, self.data_two[i] = tee(entry)
             else:
-                choice = self.data_two.popleft()
-                self.data_one, item = tee(choice)
+                entry = self.data_two.popleft()
+                self.data_one, item = tee(entry)
                 self.data_two.append(item)
             yield DataIterator.__iter(data=self.data_one, batch_size=self.batch_size,
                                       lookup_labels=self.lookup_labels, tokenizer=self.tokenizer, max_len=self.max_len)
@@ -92,9 +92,51 @@ class Dataset(object):
                  tokenizer,
                  batch_size):
         if open_pandas is True:
-            self.data = pd.read_csv(data_path, usecols=usecols, chunksize=100*batch_size)
+            self.data = read_csv(data_path, usecols=usecols, chunksize=100 * batch_size)
         self.tokenizer = tokenizer
         self.batch_size = batch_size
+
+    @staticmethod
+    def splits(train_path,
+               test_path,
+               val_path,
+               batch_size,
+               usecols,
+               tokenizer,
+               input_dim,
+               max_len,
+               lookup_labels,
+               shuffle):
+        """
+            When the original dataset already has been reparteed, this method should be used.
+        """
+        return DataIterator(data_generator=read_csv(train_path, chunksize=100 * batch_size, usecols=usecols),
+                            tokenizer=tokenizer,
+                            batch_size=batch_size,
+                            max_len=max_len,
+                            input_dim=input_dim,
+                            lookup_labels=lookup_labels,
+                            length=0,
+                            shuffle=shuffle,
+                            mode='train'), \
+               DataIterator(data_generator=read_csv(test_path, chunksize=100 * batch_size, usecols=usecols),
+                            tokenizer=tokenizer,
+                            batch_size=batch_size,
+                            max_len=max_len,
+                            input_dim=input_dim,
+                            lookup_labels=lookup_labels,
+                            length=0,
+                            shuffle=False,
+                            mode='test'), \
+               DataIterator(data_generator=read_csv(val_path, chunksize=100 * batch_size, usecols=usecols),
+                            tokenizer=tokenizer,
+                            batch_size=batch_size,
+                            max_len=max_len,
+                            input_dim=input_dim,
+                            lookup_labels=lookup_labels,
+                            length=0,
+                            shuffle=False,
+                            mode='val')
 
     def split(self, max_len, input_dim, lookup_labels, shuffle, train_test_val=None):
         train = []

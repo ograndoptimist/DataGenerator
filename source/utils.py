@@ -43,4 +43,17 @@ def save_dataframe(dataframe,
             dataframe.to_csv(file, index=None, header=None)
 
 
+def split_dataset(dataset_generator,
+                  train_test_split,
+                  data_path):
+    for i, dataset_chunk in enumerate(dataset_generator):
+        train = dataset_chunk[:int(len(dataset_chunk) * train_test_split[0])]
 
+        test = dataset_chunk[int(len(dataset_chunk) * train_test_split[0]): int(
+            len(dataset_chunk) * (train_test_split[0] + train_test_split[1]))]
+
+        val = dataset_chunk[int(len(dataset_chunk) * (train_test_split[0] + train_test_split[1])):]
+
+        save_dataframe(train, data_path=data_path + 'train.csv', check=i)
+        save_dataframe(test, data_path=data_path + 'test.csv', check=i)
+        save_dataframe(val, data_path=data_path + 'val.csv', check=i)

@@ -31,3 +31,16 @@ def prepare_generator(dataframe_generator):
 
 def build_generator(data):
     return (x for x in data)
+
+
+def save_dataframe(dataframe,
+                   data_path,
+                   check):
+    with open(data_path, 'a') as file:
+        if check == 0:
+            dataframe.to_csv(file, index=None)
+        else:
+            dataframe.to_csv(file, index=None, header=None)
+
+
+

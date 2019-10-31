@@ -1,8 +1,9 @@
-import pandas as pd
-
 from source.utils import char
 from source.utils import word
 from source.utils import build_lookup
+from source.utils import read_data
+from source.utils import generator_char
+from source.utils import generator_word
 
 
 class Tokenizer(object):
@@ -22,10 +23,10 @@ class Tokenizer(object):
         text_vocab = char(text) if self.char_level is True else word(text)
         self.vocab = build_lookup(text_vocab)
 
-    def build_vocab_generator(self, text_path, input_column, chunksize):
-        text_generator = pd.read_csv(text_path, usecols=[input_column], chunksize=chunksize)
-        text_vocab = None
-        self.vocab = text_vocab
+    def build_vocab_generator(self, text_path, usecols, chunksize):
+        data_generator = read_data(text_path, usecols, chunksize)
+        text_vocab = generator_char(data_generator) if self.char_level is True else generator_word(data_generator)
+        self.vocab = build_lookup(text_vocab)
 
     def encode(self, text):
         assert len(self.vocab) > 0

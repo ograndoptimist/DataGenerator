@@ -69,3 +69,7 @@ def read_data(data_path, usecols, chunksize):
 def generator_word(data_generator):
     return {word_ for data_chunk in data_generator for row in data_chunk[data_chunk.columns[0]] for word_ in
             row.split()}
+
+
+def generator_char(data_generator):
+    return {char_ for data_chunk in data_generator for row in data_chunk[data_chunk.columns[0]] for char_ in row}

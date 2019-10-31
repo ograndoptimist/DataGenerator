@@ -19,7 +19,6 @@ class Tokenizer(object):
             if self.to_lower else [char_ for word_ in text for char_ in word_]
 
     def build_vocab(self, text):
-        assert len(self.vocab) == 0
         text_vocab = char(text) if self.char_level is True else word(text)
         self.vocab = build_lookup(text_vocab)
 
@@ -29,20 +28,16 @@ class Tokenizer(object):
         self.vocab = build_lookup(text_vocab)
 
     def encode(self, text):
-        assert len(self.vocab) > 0
         return [self.vocab[token] for token in self.tokenize(text)]
 
     def decode(self, list_ids):
         pass
 
     def tokenize(self, text):
-        try:
-            if self.char_level is True:
-                return self.char_iterator(text)
-            else:
-                return text.lower().split(" ")
-        except AttributeError:
-            return text[0].lower().split(" ")
+        if self.char_level is True:
+            return self.char_iterator(text)
+        else:
+            return text.lower().split(" ")
 
     @property
     def get_vocab(self):

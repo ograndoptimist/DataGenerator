@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 def word(text,
          to_lower=True):
     """
@@ -57,3 +60,7 @@ def split_dataset(dataset_generator,
         save_dataframe(train, data_path=data_path + 'train.csv', check=i)
         save_dataframe(test, data_path=data_path + 'test.csv', check=i)
         save_dataframe(val, data_path=data_path + 'val.csv', check=i)
+
+
+def read_data(data_path, usecols, chunksize):
+    return pd.read_csv(data_path, chunksize=chunksize, usecols=usecols)
